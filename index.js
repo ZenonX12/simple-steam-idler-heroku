@@ -3,12 +3,12 @@ const SteamTotp = require('steam-totp');
 const chalk = require('chalk');
 
 // Set your credentials and secrets here
-const username = 'your_steam_username'; // Replace with your Steam username
-const password = 'your_steam_password'; // Replace with your Steam password
-const sharedSecret = 'your_shared_secret'; // Replace with your shared secret for 2FA
+const username = ''; // Enter your Steam username
+const password = ''; // Enter your Steam password
+const sharedSecret = ''; // Enter your shared secret for 2FA
 
-const games = [730, 440, 570]; // AppIDs of games to show (CS:GO, TF2, Dota 2)
-const status = SteamUser.EPersonaState.Online; // Online status
+const games = [730, 440, 570]; // AppIDs of games to play
+const status = SteamUser.EPersonaState.Online; // 1 (Online), 7 (Invisible), etc.
 
 // Create a new SteamUser instance
 const user = new SteamUser();
@@ -19,7 +19,6 @@ if (!username || !password || !sharedSecret) {
     process.exit(1);
 }
 
-// Login to Steam with credentials and 2FA code
 user.logOn({
     accountName: username,
     password: password,
@@ -29,8 +28,8 @@ user.logOn({
 // Handle successful login
 user.on('loggedOn', () => {
     console.log(chalk.green(`[${new Date().toLocaleString()}] Successfully logged in as ${user.steamID}`));
-    user.setPersona(status); // Set the Steam persona state
-    user.gamesPlayed(games); // Display games being "played" on your Steam status
+    user.setPersona(status); // Set the persona state (e.g., online or invisible)
+    user.gamesPlayed(games); // Start playing the specified games
     console.log(chalk.green(`[${new Date().toLocaleString()}] Now playing games: ${games.join(', ')}`));
 });
 
@@ -52,7 +51,7 @@ user.on('disconnected', (eresult) => {
             password: password,
             twoFactorCode: SteamTotp.generateAuthCode(sharedSecret),
         });
-    }, 5000); // Retry reconnect after 5 seconds
+    }, 5000); // Retry after 5 seconds
 });
 
 // Handle web session establishment
@@ -60,18 +59,7 @@ user.on('webSession', (sessionID, cookies) => {
     console.log(chalk.blue(`[${new Date().toLocaleString()}] Web session established. Session ID: ${sessionID}`));
 });
 
-// Flexible game updates
-function updateGames(newGames) {
-    console.log(chalk.blue(`[${new Date().toLocaleString()}] Updating games to: ${newGames.join(', ')}`));
-    user.gamesPlayed(newGames);
-}
-
-// Simulate updating game status after 10 seconds
-setTimeout(() => {
-    updateGames([12345, 67890]); // Replace these with actual AppIDs you want
-}, 10000);
-
-// Handle safe shutdown with SIGINT
+// Handle safe shutdown
 process.on('SIGINT', () => {
     console.log(chalk.blue(`[${new Date().toLocaleString()}] Shutting down bot...`));
     user.logOff();
