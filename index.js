@@ -64,7 +64,6 @@ user.on('webSession', (sessionID, cookies) => {
     console.log(chalk.blue(`[${new Date().toLocaleString()}] Web session established. Session ID: ${sessionID}`));
 });
 
-// Chat feature: Respond to incoming messages
 user.on('friendMessage', (steamID, message) => {
     console.log(chalk.cyan(`[${new Date().toLocaleString()}] Message from ${steamID.getSteamID64()}: ${message}`));
 
@@ -82,7 +81,18 @@ user.on('friendMessage', (steamID, message) => {
         const playingDuration = Math.floor((now - gameStartTime) / 1000); // Duration in seconds
         const hours = Math.floor(playingDuration / 3600);
         const minutes = Math.floor((playingDuration % 3600) / 60);
-        user.chatMessage(steamID, `I have been playing games for ${hours} hours and ${minutes} minutes.`);
+
+        // List of games being played
+        const gameNames = games.map(gameID => {
+            switch (gameID) {
+                case 730: return 'Counter-Strike: Global Offensive';
+                case 440: return 'Team Fortress 2';
+                case 570: return 'Dota 2';
+                default: return `AppID ${gameID}`; // Fallback for unknown games
+            }
+        }).join(', ');
+
+        user.chatMessage(steamID, `I have been playing games for ${hours} hours and ${minutes} minutes. Currently playing: ${gameNames}`);
     } else {
         user.chatMessage(steamID, 'Sorry, I didn\'t understand that. Try asking about "time online" or "time playing".');
     }
