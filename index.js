@@ -59,6 +59,20 @@ user.on('webSession', (sessionID, cookies) => {
     console.log(chalk.blue(`[${new Date().toLocaleString()}] Web session established. Session ID: ${sessionID}`));
 });
 
+// Chat feature: Respond to incoming messages
+user.on('friendMessage', (steamID, message) => {
+    console.log(chalk.cyan(`[${new Date().toLocaleString()}] Message from ${steamID.getSteamID64()}: ${message}`));
+
+    // Define a simple response system
+    if (message.toLowerCase() === 'hello') {
+        user.chatMessage(steamID, 'Hello! How can I help you?');
+    } else if (message.toLowerCase().includes('game')) {
+        user.chatMessage(steamID, 'I am currently playing games! Want to join?');
+    } else {
+        user.chatMessage(steamID, 'Sorry, I didn\'t understand that. Try saying "hello" or ask about games!');
+    }
+});
+
 // Handle safe shutdown
 process.on('SIGINT', () => {
     console.log(chalk.blue(`[${new Date().toLocaleString()}] Shutting down bot...`));
