@@ -68,9 +68,7 @@ user.on('webSession', (sessionID, cookies) => {
 user.on('friendMessage', (steamID, message) => {
     console.log(chalk.cyan(`[${new Date().toLocaleString()}] 📩 Message from ${steamID.getSteamID64()}: ${message}`));
 
-    if (message.toLowerCase() === 'hello') {
-        user.chatMessage(steamID, `👋 Hello there! How can I assist you today?`);
-    } else if (message.toLowerCase().includes('time online')) {
+    if (message.toLowerCase().includes('time online')) {
         const now = new Date();
         const onlineDuration = Math.floor((now - loginTime) / 1000);
         const hours = Math.floor(onlineDuration / 3600);
