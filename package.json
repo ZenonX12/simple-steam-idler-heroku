@@ -5,12 +5,34 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "build": "echo \"No build process defined\"",
+    "prestart": "npm install"
   },
   "author": "https://github.com/Gunthersuper",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Gunthersuper/simple-steam-idler.git"
+  },
+  "keywords": [
+    "steam",
+    "idler",
+    "heroku",
+    "steam-user",
+    "steam-totp",
+    "game-time"
+  ],
   "dependencies": {
     "steam-totp": "^2.1.2",
-    "steam-user": "^4.24.0"
+    "steam-user": "^4.24.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   }
 }
