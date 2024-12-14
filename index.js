@@ -60,18 +60,6 @@ user.on('webSession', (sessionID, cookies) => {
     console.log(chalk.blue(`[${new Date().toLocaleString()}] Web session established. Session ID: ${sessionID}`));
 });
 
-// Notify when 2FA token is about to expire
-setInterval(() => {
-    const currentTime = Math.floor(Date.now() / 1000);
-    const timeRemaining = 30 - (currentTime % 30);
-
-    if (timeRemaining <= 5) {
-        console.warn(
-            chalk.yellow(`[${new Date().toLocaleString()}] 2FA token is about to expire. Time left: ${timeRemaining}s.`)
-        );
-    }
-}, 1000);
-
 // Flexible game updates
 function updateGames(newGames) {
     console.log(chalk.blue(`[${new Date().toLocaleString()}] Updating games to: ${newGames.join(', ')}`));
