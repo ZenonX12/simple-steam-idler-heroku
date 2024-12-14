@@ -9,7 +9,7 @@
 1. Install Git: [Download Git](https://git-scm.com/downloads)
 2. Install Heroku CLI: [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli)
 3. Register an account at [Heroku](https://heroku.com)
-4. Connect your Steam account to the Steam Desktop Authenticator (SDA): [Steam Desktop Authenticator](https://github.com/Jessecar96/SteamDesktopAuthenticator/releases/tag/1.0.10)
+4. Connect your Steam account to the Steam Desktop Authenticator : [steaminventoryhelper](https://steaminventoryhelper.com/)
 
 ---
 
@@ -20,11 +20,10 @@
 Open PowerShell (or Terminal) in the desired folder and enter the following commands:
 
 ```bash
-# Configure Git with your email
-git config --global user.email "YOUR EMAIL"
-
 # Clone the repository
 git clone https://github.com/Gunthersuper/simple-steam-idler-heroku
+# Clone the repository
+git clone https://github.com/ZenonX12/simple-steam-idler-heroku
 ```
 
 After cloning, a new folder `simple-steam-idler-heroku` will appear in your directory. Navigate to this folder:
