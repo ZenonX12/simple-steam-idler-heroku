@@ -10,6 +10,9 @@ const sharedSecret = ''; // Enter your shared secret for 2FA
 const games = [730, 440, 570]; // AppIDs of games to play
 const status = SteamUser.EPersonaState.Online; // 1 (Online), 7 (Invisible), etc.
 
+let loginTime = null; // Track the time when bot logs in
+let gameStartTime = null; // Track the time when games start
+
 // Create a new SteamUser instance
 const user = new SteamUser();
 
@@ -27,10 +30,12 @@ user.logOn({
 
 // Handle successful login
 user.on('loggedOn', () => {
-    console.log(chalk.green(`[${new Date().toLocaleString()}] Successfully logged in as ${user.steamID}`));
+    loginTime = new Date(); // Set login time
+    console.log(chalk.green(`[${loginTime.toLocaleString()}] Successfully logged in as ${user.steamID}`));
     user.setPersona(status); // Set the persona state (e.g., online or invisible)
     user.gamesPlayed(games); // Start playing the specified games
-    console.log(chalk.green(`[${new Date().toLocaleString()}] Now playing games: ${games.join(', ')}`));
+    gameStartTime = new Date(); // Set game start time
+    console.log(chalk.green(`[${gameStartTime.toLocaleString()}] Now playing games: ${games.join(', ')}`));
 });
 
 // Handle login errors
@@ -66,10 +71,20 @@ user.on('friendMessage', (steamID, message) => {
     // Define a simple response system
     if (message.toLowerCase() === 'hello') {
         user.chatMessage(steamID, 'Hello! How can I help you?');
-    } else if (message.toLowerCase().includes('game')) {
-        user.chatMessage(steamID, 'I am currently playing games! Want to join?');
+    } else if (message.toLowerCase().includes('time online')) {
+        const now = new Date();
+        const onlineDuration = Math.floor((now - loginTime) / 1000); // Duration in seconds
+        const hours = Math.floor(onlineDuration / 3600);
+        const minutes = Math.floor((onlineDuration % 3600) / 60);
+        user.chatMessage(steamID, `I have been online for ${hours} hours and ${minutes} minutes.`);
+    } else if (message.toLowerCase().includes('time playing')) {
+        const now = new Date();
+        const playingDuration = Math.floor((now - gameStartTime) / 1000); // Duration in seconds
+        const hours = Math.floor(playingDuration / 3600);
+        const minutes = Math.floor((playingDuration % 3600) / 60);
+        user.chatMessage(steamID, `I have been playing games for ${hours} hours and ${minutes} minutes.`);
     } else {
-        user.chatMessage(steamID, 'Sorry, I didn\'t understand that. Try saying "hello" or ask about games!');
+        user.chatMessage(steamID, 'Sorry, I didn\'t understand that. Try asking about "time online" or "time playing".');
     }
 });
 
