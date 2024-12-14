@@ -65,3 +65,7 @@ process.on('SIGINT', () => {
     user.logOff();
     process.exit();
 });
+
+// Credits
+console.log(chalk.magenta('Owner: https://github.com/Gunthersuper/'));
+console.log(chalk.magenta('Fix by: https://github.com/ZenonX12/'));
