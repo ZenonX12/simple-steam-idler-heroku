@@ -11,7 +11,6 @@ const games = [730, 440, 570]; // AppIDs of games to play
 const status = SteamUser.EPersonaState.Online; // 1 (Online), 7 (Invisible), etc.
 
 let loginTime = null; // Track the time when bot logs in
-let gameStartTime = null; // Track the time when games start
 
 // Create a new SteamUser instance
 const user = new SteamUser();
@@ -34,8 +33,7 @@ user.on('loggedOn', () => {
     console.log(chalk.green(`[${loginTime.toLocaleString()}] Successfully logged in as ${user.steamID}`));
     user.setPersona(status);
     user.gamesPlayed(games);
-    gameStartTime = new Date();
-    console.log(chalk.green(`[${gameStartTime.toLocaleString()}] 🎮 Now playing games: ${games.join(', ')}`));
+    console.log(chalk.green(`[${new Date().toLocaleString()}] 🎮 Now playing games: ${games.join(', ')}`));
 });
 
 // Handle login errors
@@ -79,32 +77,10 @@ user.on('friendMessage', (steamID, message) => {
                          `📌 Need anything else? Let me know! 😎`;
 
         user.chatMessage(steamID, response);
-    } else if (message.toLowerCase().includes('time playing')) {
-        const now = new Date();
-        const playingDuration = Math.floor((now - gameStartTime) / 1000);
-        const hours = Math.floor(playingDuration / 3600);
-        const minutes = Math.floor((playingDuration % 3600) / 60);
-
-        const gameNames = games.map(gameID => {
-            switch (gameID) {
-                case 730: return '🎮 Counter-Strike: Global Offensive';
-                case 440: return '🎮 Team Fortress 2';
-                case 570: return '🎮 Dota 2';
-                default: return `🕹️ AppID ${gameID}`;
-            }
-        }).join('\n');
-
-        const response = `🔥 Gaming stats incoming! 🎮\n` +
-                         `🕒 **Time spent playing:** ${hours} hours and ${minutes} minutes\n` +
-                         `🎲 **Current games:**\n${gameNames}\n` +
-                         `💬 Need more info? Just ask! 😉`;
-
-        user.chatMessage(steamID, response);
     } else {
         const response = `🤖 Oops, I didn't catch that! 🚧\n` +
                          `💡 Try asking about:\n` +
                          `- ⏰ **"time online"** for connection time\n` +
-                         `- ⌛ **"time playing"** for gaming stats\n` +
                          `✨ Let’s make this chat awesome! 🎉`;
 
         user.chatMessage(steamID, response);
