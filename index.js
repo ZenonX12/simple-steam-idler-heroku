@@ -74,10 +74,11 @@ user.on('friendMessage', (steamID, message) => {
         const hours = Math.floor(onlineDuration / 3600);
         const minutes = Math.floor((onlineDuration % 3600) / 60);
 
-        user.chatMessage(
-            steamID,
-            `⏰ I've been online for **${hours} hours and ${minutes} minutes.** 💻`
-        );
+        const response = `✨ Hey there! 🌐 I've been connected to Steam for:\n` +
+                         `⏳ **${hours} hours and ${minutes} minutes** 💻\n` +
+                         `📌 Need anything else? Let me know! 😎`;
+
+        user.chatMessage(steamID, response);
     } else if (message.toLowerCase().includes('time playing')) {
         const now = new Date();
         const playingDuration = Math.floor((now - gameStartTime) / 1000);
@@ -89,19 +90,24 @@ user.on('friendMessage', (steamID, message) => {
                 case 730: return '🎮 Counter-Strike: Global Offensive';
                 case 440: return '🎮 Team Fortress 2';
                 case 570: return '🎮 Dota 2';
-                default: return `AppID ${gameID}`;
+                default: return `🕹️ AppID ${gameID}`;
             }
-        }).join(', ');
+        }).join('\n');
 
-        user.chatMessage(
-            steamID,
-            `⏳ I've been playing games for **${hours} hours and ${minutes} minutes.** 🎮 Currently playing: ${gameNames}`
-        );
+        const response = `🔥 Gaming stats incoming! 🎮\n` +
+                         `🕒 **Time spent playing:** ${hours} hours and ${minutes} minutes\n` +
+                         `🎲 **Current games:**\n${gameNames}\n` +
+                         `💬 Need more info? Just ask! 😉`;
+
+        user.chatMessage(steamID, response);
     } else {
-        user.chatMessage(
-            steamID,
-            `🤖 Sorry, I didn't understand that. Try asking about **"time online"** or **"time playing"**. 🧐`
-        );
+        const response = `🤖 Oops, I didn't catch that! 🚧\n` +
+                         `💡 Try asking about:\n` +
+                         `- ⏰ **"time online"** for connection time\n` +
+                         `- ⌛ **"time playing"** for gaming stats\n` +
+                         `✨ Let’s make this chat awesome! 🎉`;
+
+        user.chatMessage(steamID, response);
     }
 });
 
@@ -113,5 +119,9 @@ process.on('SIGINT', () => {
 });
 
 // Credits
-console.log(chalk.magenta('🛠️ Owner: https://github.com/Gunthersuper/'));
-console.log(chalk.magenta('🐛 Fix by: https://github.com/ZenonX12/'));
+console.log(chalk.magentaBright('\n=============================================='));
+console.log(chalk.bold.magentaBright('🛠️  Steam Bot Project'));
+console.log(chalk.greenBright('✨ Developed by: ') + chalk.cyanBright('https://github.com/Gunthersuper/'));
+console.log(chalk.greenBright('🐛 Fixes & Enhancements: ') + chalk.cyanBright('https://github.com/ZenonX12/'));
+console.log(chalk.yellowBright('\n🚀 Thank you for using this bot! 💖 Stay awesome!'));
+console.log(chalk.magentaBright('==============================================\n'));
