@@ -1,6 +1,7 @@
 const SteamUser = require('steam-user');
 const SteamTotp = require('steam-totp');
 const chalk = require('chalk');
+const fs = require('fs');
 
 // Set your credentials and secrets here
 const username = ''; // Enter your Steam username
@@ -12,6 +13,7 @@ const status = SteamUser.EPersonaState.Online; // 1 (Online), 7 (Invisible), etc
 
 let loginTime = null; // Track the time when bot logs in
 let reconnectAttempts = 0; // Track reconnection attempts
+const logFilePath = './chat_log.txt';
 
 // Validate credentials
 if (!username || !password) {
@@ -80,11 +82,20 @@ user.on('webSession', (sessionID, cookies) => {
     console.log(chalk.blue(`[${new Date().toLocaleString()}] 🌐 Web session established. Session ID: ${sessionID}`));
 });
 
+// Utility function to log chat messages
+const logChatMessage = (steamID, message) => {
+    const logEntry = `[${new Date().toLocaleString()}] ${steamID.getSteamID64()}: ${message}\n`;
+    fs.appendFileSync(logFilePath, logEntry);
+    console.log(chalk.gray(`Logged message: ${logEntry.trim()}`));
+};
+
 // Handle incoming Steam messages
 user.on('friendMessage', (steamID, message) => {
+    logChatMessage(steamID, message);
+
     console.log(chalk.cyan(`[${new Date().toLocaleString()}] 📩 Message from ${steamID.getSteamID64()}: ${message}`));
 
-    if (message.toLowerCase().includes('time online')) {
+    if (message.toLowerCase() === 'time online') {
         const now = new Date();
         const onlineDuration = Math.floor((now - loginTime) / 1000);
         const hours = Math.floor(onlineDuration / 3600);
@@ -95,13 +106,29 @@ user.on('friendMessage', (steamID, message) => {
                          `📌 Need anything else? Let me know! 😎`;
 
         user.chatMessage(steamID, response);
+    } else if (message.toLowerCase() === 'profile') {
+        const profileInfo = `🌟 Steam Profile Info:\n` +
+                            `🆔 ID: ${steamID.getSteamID64()}\n` +
+                            `🚀 Status: ${user.steamID ? 'Online' : 'Offline'}\n` +
+                            `✨ Games: ${games.join(', ')}`;
+
+        user.chatMessage(steamID, profileInfo);
     } else {
         const response = `🤖 Sorry, I didn't understand that! 🚧\n` +
                          `💡 Try asking about:\n` +
                          `- ⏰ "time online" to see how long I've been connected.\n` +
+                         `- 👤 "profile" to get Steam profile info.\n` +
                          `✨ Let’s make this chat awesome! 🎉`;
 
         user.chatMessage(steamID, response);
+    }
+});
+
+// Notify when friends come online
+user.on('friendRelationship', (steamID, relationship) => {
+    if (relationship === SteamUser.EFriendRelationship.Friend) {
+        console.log(chalk.green(`🎉 Friend ${steamID.getSteamID64()} is now online!`));
+        user.chatMessage(steamID, `👋 Hey there! I'm online and ready to chat. 😊`);
     }
 });
 
