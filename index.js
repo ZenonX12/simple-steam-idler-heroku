@@ -11,26 +11,43 @@ const games = [730, 440, 570]; // AppIDs of games to play
 const status = SteamUser.EPersonaState.Online; // 1 (Online), 7 (Invisible), etc.
 
 let loginTime = null; // Track the time when bot logs in
+let reconnectAttempts = 0; // Track reconnection attempts
+
+// Validate credentials
+if (!username || !password) {
+    console.error(chalk.red("❌ Error: Missing username or password. Please provide valid credentials."));
+    process.exit(1);
+}
 
 // Create a new SteamUser instance
 const user = new SteamUser();
 
-// Log into Steam
-if (!username || !password || !sharedSecret) {
-    console.error(chalk.red("Error: Please provide valid credentials (username, password, and shared secret)."));
-    process.exit(1);
-}
+// Generate 2FA Code
+const getTwoFactorCode = () => {
+    if (sharedSecret) {
+        return SteamTotp.generateAuthCode(sharedSecret);
+    }
+    console.warn(chalk.yellow("⚠️ Shared secret not provided. Please manually input the 2FA code."));
+    return null;
+};
 
-user.logOn({
-    accountName: username,
-    password: password,
-    twoFactorCode: SteamTotp.generateAuthCode(sharedSecret),
-});
+// Log into Steam
+const logOnToSteam = () => {
+    const twoFactorCode = getTwoFactorCode();
+
+    user.logOn({
+        accountName: username,
+        password: password,
+        twoFactorCode: twoFactorCode,
+    });
+};
 
 // Handle successful login
 user.on('loggedOn', () => {
+    reconnectAttempts = 0; // Reset reconnect attempts on success
     loginTime = new Date();
-    console.log(chalk.green(`[${loginTime.toLocaleString()}] Successfully logged in as ${user.steamID}`));
+
+    console.log(chalk.green(`[${loginTime.toLocaleString()}] ✅ Successfully logged in as ${user.steamID}`));
     user.setPersona(status);
     user.gamesPlayed(games);
     console.log(chalk.green(`[${new Date().toLocaleString()}] 🎮 Now playing games: ${games.join(', ')}`));
@@ -38,23 +55,24 @@ user.on('loggedOn', () => {
 
 // Handle login errors
 user.on('error', (err) => {
-    if (err.message.includes('InvalidPassword')) {
-        console.error(chalk.red(`[${new Date().toLocaleString()}] ❌ Login error: Invalid password. Please check your credentials.`));
+    if (err.eresult === SteamUser.EResult.InvalidPassword) {
+        console.error(chalk.red(`[${new Date().toLocaleString()}] ❌ Login failed: Invalid password. Please check your credentials.`));
+    } else if (err.eresult === SteamUser.EResult.TwoFactorCodeMismatch) {
+        console.error(chalk.red(`[${new Date().toLocaleString()}] ❌ Login failed: Incorrect 2FA code. Ensure shared secret is correct.`));
     } else {
         console.error(chalk.red(`[${new Date().toLocaleString()}] ❌ Login error: ${err.message}`));
     }
+
+    process.exit(1);
 });
 
-// Handle disconnections with automatic reconnect
+// Handle disconnections with exponential backoff
 user.on('disconnected', (eresult) => {
-    console.warn(chalk.yellow(`[${new Date().toLocaleString()}] 🔄 Disconnected from Steam (eresult: ${eresult}). Retrying in 5 seconds...`));
-    setTimeout(() => {
-        user.logOn({
-            accountName: username,
-            password: password,
-            twoFactorCode: SteamTotp.generateAuthCode(sharedSecret),
-        });
-    }, 5000);
+    reconnectAttempts++;
+    const retryDelay = Math.min(30000, 5000 * reconnectAttempts); // Cap delay at 30 seconds
+
+    console.warn(chalk.yellow(`[${new Date().toLocaleString()}] 🔄 Disconnected from Steam (eresult: ${eresult}). Retrying in ${retryDelay / 1000} seconds...`));
+    setTimeout(logOnToSteam, retryDelay);
 });
 
 // Handle web session establishment
@@ -62,7 +80,7 @@ user.on('webSession', (sessionID, cookies) => {
     console.log(chalk.blue(`[${new Date().toLocaleString()}] 🌐 Web session established. Session ID: ${sessionID}`));
 });
 
-// Handle incoming Steam messages with improved responses
+// Handle incoming Steam messages
 user.on('friendMessage', (steamID, message) => {
     console.log(chalk.cyan(`[${new Date().toLocaleString()}] 📩 Message from ${steamID.getSteamID64()}: ${message}`));
 
@@ -78,21 +96,24 @@ user.on('friendMessage', (steamID, message) => {
 
         user.chatMessage(steamID, response);
     } else {
-        const response = `🤖 Oops, I didn't catch that! 🚧\n` +
+        const response = `🤖 Sorry, I didn't understand that! 🚧\n` +
                          `💡 Try asking about:\n` +
-                         `- ⏰ **"time online"** for connection time\n` +
+                         `- ⏰ "time online" to see how long I've been connected.\n` +
                          `✨ Let’s make this chat awesome! 🎉`;
 
         user.chatMessage(steamID, response);
     }
 });
 
-// Handle safe shutdown
+// Safe shutdown on Ctrl+C
 process.on('SIGINT', () => {
     console.log(chalk.blue(`[${new Date().toLocaleString()}] 🛑 Shutting down bot...`));
     user.logOff();
     process.exit();
 });
+
+// Start logging in
+logOnToSteam();
 
 // Credits
 console.log(chalk.magentaBright('\n=============================================='));
